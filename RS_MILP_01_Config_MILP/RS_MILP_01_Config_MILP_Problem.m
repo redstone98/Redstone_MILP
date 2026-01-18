@@ -56,8 +56,8 @@ timeSec = double(round(timeSec));   % 정수화 (필요시 floor / ceil로 변�
 A_matrix = [double(satNum), double(groundNum), timeSec];
 A_matrix = sortrows(A_matrix, 3);
 
-A_matrix = A_matrix(1:2000,:);
-%% 
+A_matrix = A_matrix(1:100,:);
+%
 % 
 % 
 % 
