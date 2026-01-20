@@ -117,16 +117,27 @@ $$
 =
 E_{G_j}^{1}
 \begin{bmatrix}
-1\\ \mathbf{x}\\ 1
-\end{bmatrix},
-\qquad
+1\\
+\mathbf{x}\\
+1
+\end{bmatrix}
+\quad\Rightarrow\quad
+\mathbf{x}_{G_j}\ \text{is affine w.r.t.}\ \mathbf{x}
+$$
+
+$$
 \mathbf{t}_{G_j}
 =
 E_{G_j}^{1}
 \begin{bmatrix}
-t_{\text{start}}\\ \mathbf{t}\\ t_{\text{end}}
+t_{\text{start}}\\
+\mathbf{t}\\
+t_{\text{end}}
 \end{bmatrix}
+\quad\Rightarrow\quad
+\mathbf{t}_{G_j}\ \text{is affine w.r.t.}\ \mathbf{t}
 $$
+
 
 ---
 
@@ -190,11 +201,7 @@ $$
 
 $$
 \min\ (\mathbf{y}-\mathbf{1})^\mathsf{T}G(\mathbf{y}-\mathbf{1})
-$$
-
-Subject to:
-
-$$
+\quad\text{s.t.}\quad
 \mathbf{y}\ge E\mathbf{x}+\mathbf{f},\quad
 \mathbf{1}\le\mathbf{y}\le2\mathbf{1}
 $$
