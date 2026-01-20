@@ -103,41 +103,6 @@ $$
 E_{G_j}^{1} : (|G_j|+2)\times (N+2),\quad j=1,\ldots,q
 $$
 
-Boundary handling:
-
-$$
-E_{G_j}^{1}(1,1)=1,\qquad
-E_{G_j}^{1}(|G_j|+2,N+2)=1
-$$
-
-Affine mappings:
-
-$$
-\mathbf{x}_{G_j}
-=
-E_{G_j}^{1}
-\begin{bmatrix}
-1\\
-\mathbf{x}\\
-1
-\end{bmatrix}
-\quad\Rightarrow\quad
-\mathbf{x}_{G_j}\ \text{is affine w.r.t.}\ \mathbf{x}
-$$
-
-$$
-\mathbf{t}_{G_j}
-=
-E_{G_j}^{1}
-\begin{bmatrix}
-t_{\text{start}}\\
-\mathbf{t}\\
-t_{\text{end}}
-\end{bmatrix}
-\quad\Rightarrow\quad
-\mathbf{t}_{G_j}\ \text{is affine w.r.t.}\ \mathbf{t}
-$$
-
 
 ---
 
