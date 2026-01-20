@@ -5,7 +5,6 @@ Redstone's LEO satellite constellation optimization using Mixed-Integer Linear P
 
 This note summarizes how an unconstrained SAT–GS contact chart from constellation simulation can be transformed into standard **MILP / MIQP** formulations for revisit-time optimization.
 
----
 
 ## 1. Given: Contact Matrix (No SAT Operational Constraint)
 
@@ -38,7 +37,6 @@ $$
 a_{13} \le a_{23} \le \cdots \le a_{N3}
 $$
 
----
 
 ## 2. Key Input Parameters for MILP/MIQP
 
@@ -56,7 +54,6 @@ $$
 \mathbf{x} \in \{0,1\}^N
 $$
 
----
 
 ## 3. Selection Matrix Generation
 
@@ -83,7 +80,6 @@ $$
 \mathbf{t}_{S_i} = E_{S_i}^{1}\mathbf{t}
 $$
 
----
 
 ### 3.2. $E_{S_i,x}^{2},\ E_{S_i,t}^{2}$: Pairwise-difference selection matrices for each satellite
 
@@ -95,7 +91,6 @@ $$
 - Constructed by stacking difference blocks over $\alpha=1,\ldots,|S_i|-1$  
 - $E_{S_i,t}^{2}$ uses $-1/+1$ to encode time differences
 
----
 
 ### 3.3. $E_{G_j}^{1}$: Map global contacts to each GS revisit sequence
 
@@ -104,7 +99,6 @@ E_{G_j}^{1} : (|G_j|+2)\times (N+2),\quad j=1,\ldots,q
 $$
 
 
----
 
 ### 3.4. $E_{G_j,x}^{2},\ E_{G_j,t}^{2}$: Pairwise-difference selection matrices for each GS
 
@@ -113,7 +107,6 @@ E_{G_j,x}^{2},\ E_{G_j,t}^{2}
 \in \mathbb{R}^{\frac{(|G_j|+2)(|G_j|+1)}{2}\times(|G_j|+2)},\quad j=1,\ldots,q
 $$
 
----
 
 ## 4. Revisit-Time Optimization Formulations
 
@@ -139,7 +132,6 @@ $$
 A\mathbf{x}\le\mathbf{b}
 $$
 
----
 
 ### 4.2. $L_1$ Optimization (MILP)
 
@@ -149,7 +141,6 @@ $$
 A\mathbf{x}\le\mathbf{b},\ \mathbf{x}\in\{0,1\}^N
 $$
 
----
 
 ### 4.3–4.4. $L_\infty$ Optimization (MILP)
 
@@ -160,7 +151,6 @@ A\mathbf{x}\le\mathbf{b},\quad
 R\mathbf{1}\ge C\mathbf{x}+\mathbf{d}
 $$
 
----
 
 ### 4.5–4.6. $L_2$ Optimization (MIQP)
 
@@ -171,11 +161,5 @@ $$
 \mathbf{1}\le\mathbf{y}\le2\mathbf{1}
 $$
 
----
 
-## Notes
-
-- Fully compatible with **GitHub MathJax**
-- Preserves the full mathematical derivation
-- Ready for **research-grade public repository**
 
