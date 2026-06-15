@@ -27,21 +27,21 @@ A_matrix = A_matrix(1:number_of_missions,:);
 % Satellite Cadence Constraint
 tau = 30;
 % Number of SATs
-p = 48;
+number_of_SAT = 48;
 % Number of GSs
-q = 54;
+number_of_GS = 54;
 
 %% 3. Generate Selection Matrices
-[E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, p,q);
+[E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
 
 %% 4. Generate A, b, P for Ax=<b by given tau
-[A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, p, tau, E1_Si, E2_Si_x, E2_Si_t);
+[A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
 
 %% 5. Generate E, f, g_vec for z >= Ex + f - 1
-[E, f_vector, gvec] = generate_E_f_G(A_matrix, q, E1_Gj, E2_Gj_x, E2_Gj_t);
+[E, f_vector, gvec] = generate_E_f_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t);
 
 %% 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
-[x_BCD,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, p, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
+[x_BCD,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
 x_BCD(abs(x_BCD) < 1e-1) = 0;
 row_index_BCD = x_BCD .* A_matrix(:,4);
 row_index_BCD = row_index_BCD(row_index_BCD ~= 0);
@@ -50,7 +50,7 @@ row_index_BCD = row_index_BCD(row_index_BCD ~= 0);
 %% 7. Alternative Direction Multiplier Method (Use Gurobi)
 maxIters   = 200;
 rho        =  4 * 1e7;       % penalty parameter
-[x_ADMM,z_ADMM, x_history_ADMM, z_history_ADMM] = solve_ADMM(maxIters, rho, A_matrix, p, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
+[x_ADMM,z_ADMM, x_history_ADMM, z_history_ADMM] = solve_ADMM(maxIters, rho, A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
 row_index_ADMM = x_ADMM .* A_matrix(:,4);
 row_index_ADMM = row_index_ADMM(row_index_ADMM ~= 0);
 [revisit_time_vector_info_ADMM, contact_tables_ADMM, revisit_vectors_ADMM] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho);
