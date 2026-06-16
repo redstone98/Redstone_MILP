@@ -1,4 +1,4 @@
-function [revisit_time_vector_info, contact_tables, revisit_vectors] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho)
+function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_cadence_info] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho)
 
 
 % Extract Ground Point Tables
@@ -6,6 +6,15 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors] = generate_
 
     % Source 열에서 고유 값 추출
     sources = unique(T.Source);
+    
+
+    targets = unique(T.Target);
+    for i = 1:length(targets)
+        src = targets(i);
+        subTable = T(strcmp(T.Target, src), :);
+        subTable_sorted = sortrows(subTable,4,"ascend");   
+        satellite_cadence_info.(sprintf('%s_Table', src)) = subTable_sorted;
+    end
 
     % Revisit Time Matrix (Min / Max / Mean) 생성
     Revisit_Matrix = zeros(length(sources),3);

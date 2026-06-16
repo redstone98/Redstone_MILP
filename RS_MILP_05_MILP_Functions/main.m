@@ -15,12 +15,10 @@ access_interval_table = EOIR_access_interval;
 A_matrix = generate_A_matrix(access_interval_table, start_time);
 
 %1.1 Unconstrained Result
-[revisit_time_vector_info_uncontrained, contact_tables_uncontrained, revisit_vectors_uncontrained] = generate_revisit_table_unconstrained(access_interval_table, A_matrix, start_time);
+[revisit_time_vector_info_uncontrained, contact_tables_uncontrained, revisit_vectors_uncontrained, satellite_cadence_info_unconstrained] = generate_revisit_table_unconstrained(access_interval_table, A_matrix, start_time);
 
 
 %% 2. Input Key Parameters from A matrix
-
-
 % N = number of missions
 number_of_missions = 1500;
 A_matrix = A_matrix(1:number_of_missions,:);
@@ -45,7 +43,7 @@ number_of_GS = 54;
 x_BCD(abs(x_BCD) < 1e-1) = 0;
 row_index_BCD = x_BCD .* A_matrix(:,4);
 row_index_BCD = row_index_BCD(row_index_BCD ~= 0);
-[revisit_time_vector_info_BCD, contact_tables_BCD, revisit_vectors_BCD] = generate_revisit_table_BCD(access_interval_table, row_index_BCD, A_matrix, tau);
+[revisit_time_vector_info, contact_tables, revisit_vectors_BCD, satellite_cadence_info_BCD] = generate_revisit_table_BCD(access_interval_table, row_index_BCD, A_matrix, tau);
 
 %% 7. Alternative Direction Multiplier Method (Use Gurobi)
 maxIters   = 200;
@@ -53,4 +51,4 @@ rho        =  4 * 1e7;       % penalty parameter
 [x_ADMM,z_ADMM, x_history_ADMM, z_history_ADMM] = solve_ADMM(maxIters, rho, A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
 row_index_ADMM = x_ADMM .* A_matrix(:,4);
 row_index_ADMM = row_index_ADMM(row_index_ADMM ~= 0);
-[revisit_time_vector_info_ADMM, contact_tables_ADMM, revisit_vectors_ADMM] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho);
+[revisit_time_vector_info_ADMM, contact_tables_ADMM, revisit_vectors_ADMM, satellite_cadence_info_ADMM] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho);
