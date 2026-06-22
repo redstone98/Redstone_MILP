@@ -1,4 +1,4 @@
-function [E, f_vector, gvec] = generate_E_f_G(A_matrix, q, E1_Gj, E2_Gj_x, E2_Gj_t)
+function [E, f_vector, gvec] = generate_E_f_G(A_matrix, q, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end)
 
 E_ori = [];
 F = [];
@@ -6,7 +6,7 @@ F = [];
 t = A_matrix(:,3);                       % (N×1)
 N = length(t);
 
-t_aug = [min(t); t; max(t)+1];                % (N+2 × 1), same as your code
+t_aug = [t_start; t; t_end];                % (N+2 × 1), same as your code
 
 % P = [0_{1×N}; I_N; 0_{1×N}]  -> (N+2 × N)
 P = [zeros(1,N); speye(N); zeros(1,N)];
