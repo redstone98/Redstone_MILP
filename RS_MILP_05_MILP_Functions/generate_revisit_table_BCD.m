@@ -84,22 +84,30 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
         revisit_time_vector = revisit_time_vector(revisit_time_vector~=0);
 
         Revisit_Matrix(i,3) = mean(revisit_time_vector);
-        revisit_time_vector_combined = [revisit_time_vector_combined;revisit_time_vector];
        revisit_time_vector_info.(['source' num2str(i)]) = revisit_time_vector;
     end
 
+
+    figure;
+    % hold on;
+    
+    % for x = 1:length(Revisit_Matrix(:,1))
+    %     revisit_vector = revisit_time_vector_info.(['source' num2str(x)]);
+    %     n = length(revisit_vector);
+    %     scatter(x*ones(n,1), revisit_vector/3600,'*','m')
+    % end
+   
     % Revisit Time Matrix의 값을 그래프로 출력
     x = 1:length(Revisit_Matrix(:,1));
     min_value = (Revisit_Matrix(:,1))/3600;
     max_value = (Revisit_Matrix(:,2))/3600;
     mean_value = (Revisit_Matrix(:,3))/3600;
-
-    figure;
     errorbar(x, mean_value, mean_value-min_value, max_value-mean_value,'*','LineStyle','none','color','b','MarkerEdgeColor','r')
+    legend('Min, Max, Mean Revisit Time Data','Location','southoutside')    
+    hold off
     title("Revisit Time Result (BCD, tau = " + tau + " sec)", 'FontSize',12,'FontWeight','bold');
     xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
-    legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)
 
 

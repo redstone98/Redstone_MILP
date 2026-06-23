@@ -1,16 +1,13 @@
-function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_cadence_info] = generate_revisit_table_unconstrained(access_interval_table, A_matrix, t0)
-
-
-t_start = t0 + seconds(min(A_matrix(:,3)));
-t_end = t0 + seconds(max(A_matrix(:,3))+1);
-squaresum_revisit_unconstrained = 0;
+function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_cadence_info] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho)
 
 
 % Extract Ground Point Tables
-  T = access_interval_table;
+  T = access_interval_table(row_index_ADMM,:);
 
     % Source 열에서 고유 값 추출
     sources = unique(T.Source);
+    
+
     targets = unique(T.Target);
     for i = 1:length(targets)
         src = targets(i);
@@ -23,6 +20,10 @@ squaresum_revisit_unconstrained = 0;
     Revisit_Matrix = zeros(length(sources),3);
     revisit_time_vector_combined = [];
 
+    t0 = datetime(2030, 1, 1, 0, 0, 0,'TimeZone','UTC');
+    t_start = t0 + seconds(min(A_matrix(:,3)));
+    t_end = t0 + seconds(max(A_matrix(:,3))+1);
+
     % 각각의 Source 별로 테이블을 분리하여 저장
     for i = 1:length(sources)
         src = sources{i};
@@ -31,9 +32,6 @@ squaresum_revisit_unconstrained = 0;
         subTable = T(strcmp(T.Source, src), :);
         subTable_sorted = sortrows(subTable,4,"ascend");
 
-
-        % 동적으로 변수 생성 (예: Ground_Point_1_Table)
-        varName = sprintf('%s_Table', src);
         % assignin('base', varName, subTable_sorted);
         contact_tables.(sprintf('%s_Table', src)) = subTable_sorted;
 
@@ -89,8 +87,6 @@ squaresum_revisit_unconstrained = 0;
         Revisit_Matrix(i,3) = mean(revisit_time_vector);
         revisit_time_vector_combined = [revisit_time_vector_combined;revisit_time_vector];
        revisit_time_vector_info.(['source' num2str(i)]) = revisit_time_vector;
-
-       squaresum_revisit_unconstrained = squaresum_revisit_unconstrained + sum(revisit_time_vector.^2);
     end
 
     % Revisit Time Matrix의 값을 그래프로 출력
@@ -101,11 +97,11 @@ squaresum_revisit_unconstrained = 0;
 
     figure;
     errorbar(x, mean_value, mean_value-min_value, max_value-mean_value,'*','LineStyle','none','color','b','MarkerEdgeColor','r')
-    title('Revisit Time Result (Unconstrained)','FontSize',12,'FontWeight','bold');
+   title(sprintf('Revisit Time Result (ADMM, tau = %d sec, \\rho = %.0e)', tau, rho), 'FontSize',12,'FontWeight','bold');
     xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
     legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
-    xlim([-1, length(Revisit_Matrix(:,1))]+1)  
+    xlim([-1, length(Revisit_Matrix(:,1))]+1)
 
 
 end
