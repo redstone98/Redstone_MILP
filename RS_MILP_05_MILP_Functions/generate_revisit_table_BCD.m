@@ -6,7 +6,6 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
 
     % Source 열에서 고유 값 추출
     sources = unique(T.Source);
-
     targets = unique(T.Target);
     for i = 1:length(targets)
         src = targets(i);
@@ -20,13 +19,13 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
     revisit_time_vector_combined = [];
 
     t0 = datetime(2030, 1, 1, 0, 0, 0,'TimeZone','UTC');
-    t_start = t0 + seconds(min(A_matrix(:,3)));
+    t_start = t0;
     t_end = t0 + seconds(max(A_matrix(:,3))+1);
 
     % 각각의 Source 별로 테이블을 분리하여 저장
     for i = 1:length(sources)
         src = sources{i};
-
+        gs_index = str2double(regexp(src, '\d+', 'match', 'once'));
         % Source 값이 같은 행들만 추출
         subTable = T(strcmp(T.Source, src), :);
         subTable_sorted = sortrows(subTable,4,"ascend");
@@ -77,14 +76,14 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
         end
 
         % 생성된 Revisit Time Vector의 Min / Max / Mean 값을 Revisit Time Matrix에 저장
-        Revisit_Matrix(i,1) = min(revisit_time_vector);
-        Revisit_Matrix(i,2) = max(revisit_time_vector);
+        Revisit_Matrix(gs_index,1) = min(revisit_time_vector);
+        Revisit_Matrix(gs_index,2) = max(revisit_time_vector);
 
         % 재방문 주기의 평균을 구할때는 재방문 주기가 0인 데이터 포인트를 모두 제외하였음
         revisit_time_vector = revisit_time_vector(revisit_time_vector~=0);
 
-        Revisit_Matrix(i,3) = mean(revisit_time_vector);
-       revisit_time_vector_info.(['source' num2str(i)]) = revisit_time_vector;
+        Revisit_Matrix(gs_index,3) = mean(revisit_time_vector);
+       revisit_time_vector_info.(['source' num2str(gs_index)]) = revisit_time_vector;
     end
 
 
@@ -109,6 +108,7 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
     xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)
+        ylim([0,16])
 
 
 end

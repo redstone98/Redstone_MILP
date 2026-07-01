@@ -27,7 +27,7 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
     % 각각의 Source 별로 테이블을 분리하여 저장
     for i = 1:length(sources)
         src = sources{i};
-
+        sat_num = str2double(regexp(src, '\d+', 'match', 'once'));
         % Source 값이 같은 행들만 추출
         subTable = T(strcmp(T.Source, src), :);
         subTable_sorted = sortrows(subTable,4,"ascend");
@@ -78,15 +78,15 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
         end
 
         % 생성된 Revisit Time Vector의 Min / Max / Mean 값을 Revisit Time Matrix에 저장
-        Revisit_Matrix(i,1) = min(revisit_time_vector);
-        Revisit_Matrix(i,2) = max(revisit_time_vector);
+        Revisit_Matrix(sat_num,1) = min(revisit_time_vector);
+        Revisit_Matrix(sat_num,2) = max(revisit_time_vector);
 
         % 재방문 주기의 평균을 구할때는 재방문 주기가 0인 데이터 포인트를 모두 제외하였음
         revisit_time_vector = revisit_time_vector(revisit_time_vector~=0);
 
-        Revisit_Matrix(i,3) = mean(revisit_time_vector);
+        Revisit_Matrix(sat_num,3) = mean(revisit_time_vector);
         revisit_time_vector_combined = [revisit_time_vector_combined;revisit_time_vector];
-       revisit_time_vector_info.(['source' num2str(i)]) = revisit_time_vector;
+       revisit_time_vector_info.(['source' num2str(sat_num)]) = revisit_time_vector;
     end
 
     % Revisit Time Matrix의 값을 그래프로 출력
@@ -102,6 +102,7 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
     legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)
+    ylim([0,16])
 
 
 end

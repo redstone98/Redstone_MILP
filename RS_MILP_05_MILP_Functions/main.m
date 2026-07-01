@@ -7,14 +7,14 @@ addpath ~/Desktop/Redstone_MILP/RS_MILP_05_MILP_Functions/
 addpath ~/Desktop/Redstone_MILP/RS_MILP_06_AMOS/
 addpath ~/Desktop/Redstone_MILP/RS_MILP_01_Config_MILP/
 savepath
-load('Scenario_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','SAT_GS_access_interval')
-% load('EOIR_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','EOIR_access_interval')
+% load('Scenario_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','SAT_GS_access_interval')
+load('EOIR_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','EOIR_access_interval')
 
 start_time_original = datetime(2030, 1, 1, 0, 0, 0,'TimeZone','UTC');
 
 %% 1. Generate A matrix from contact chart
-access_interval_table = SAT_GS_access_interval;
-% access_interval_table = EOIR_access_interval;
+% access_interval_table = SAT_GS_access_interval;
+access_interval_table = EOIR_access_interval;
 A_matrix = generate_A_matrix(access_interval_table, start_time_original);
 
 
@@ -34,7 +34,7 @@ t_start = A_matrix(1,3);
 t_end = A_matrix(end,3);
 
 % Satellite Cadence Constraint
-tau = 300;
+tau = 30;
 % Number of SATs
 number_of_SAT = 48;
 % Number of GSs
@@ -42,8 +42,7 @@ number_of_GS = 54;
 
 
 %2.1 Unconstrained Result
-[revisit_time_vector_info_uncontrained, contact_tables_uncontrained, revisit_vectors_uncontrained, satellite_cadence_info_unconstrained] = generate_revisit_table_unconstrained(access_interval_table_sorted, A_matrix, start_time);
-
+[revisit_time_vector_info_uncontrained, contact_tables_uncontrained, revisit_vectors_uncontrained, satellite_cadence_info_unconstrained] = generate_revisit_table_unconstrained(access_interval_table_sorted, A_matrix, start_time_original);
 
 
 %% 3. Generate Selection Matrices
@@ -51,6 +50,15 @@ number_of_GS = 54;
 
 %% 4. Generate A, b, P for Ax=<b by given tau
 [A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
+
+
+%% 4.1 L1 Solver
+x_L1 = solve_L1(A,b,number_of_missions);
+x_L1(abs(x_L1) < 1e-1) = 0;
+row_index_L1 = x_L1 .* A_matrix(:,4);
+row_index_L1 = row_index_L1(row_index_L1 ~= 0);
+[revisit_time_vector_L1, contact_tables_L1, revisit_vectors_L1, satellite_cadence_info_L1] = generate_revisit_table_L1(access_interval_table, row_index_L1, A_matrix, tau, start_time_original);
+
 
 %% 5. Generate E, f, g_vec for z >= Ex + f - 1
 [E, f_vector, gvec] = generate_E_f_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end);
@@ -60,64 +68,28 @@ number_of_GS = 54;
 x_BCD(abs(x_BCD) < 1e-1) = 0;
 row_index_BCD = x_BCD .* A_matrix(:,4);
 row_index_BCD = row_index_BCD(row_index_BCD ~= 0);
-[revisit_time_vector_info, contact_tables_BCD, revisit_vectors_BCD, satellite_cadence_info_BCD] = generate_revisit_table_BCD(access_interval_table, row_index_BCD, A_matrix, tau);
+[revisit_time_vector_BCD, contact_tables_BCD, revisit_vectors_BCD, satellite_cadence_info_BCD] = generate_revisit_table_BCD(access_interval_table, row_index_BCD, A_matrix, tau);
 
 
 
 
 %% 7. Alternative Direction Multiplier Method (Use Gurobi)
-% maxIters   = 200;
-% rho        =  1 * 1e8;       % penalty parameter
-% [x_ADMM,z_ADMM, x_history_ADMM, z_history_ADMM] = solve_ADMM(maxIters, rho, A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
-% row_index_ADMM = x_ADMM .* A_matrix(:,4);
-% row_index_ADMM = row_index_ADMM(row_index_ADMM ~= 0);
-% [revisit_time_vector_info_ADMM, contact_tables_ADMM, revisit_vectors_ADMM, satellite_cadence_info_ADMM] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho);
-% 
+maxIters   = 200;
+rho        =  4 * 1e7;       % penalty parameter
+[x_ADMM,z_ADMM, x_history_ADMM, z_history_ADMM] = solve_ADMM(maxIters, rho, A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
+row_index_ADMM = x_ADMM .* A_matrix(:,4);
+row_index_ADMM = row_index_ADMM(row_index_ADMM ~= 0);
+[revisit_time_vector_ADMM, contact_tables_ADMM, revisit_vectors_ADMM, satellite_cadence_info_ADMM] = generate_revisit_table_ADMM(access_interval_table, row_index_ADMM, A_matrix, tau, rho);
+
 
 
 %% 8. Plot the Revisit Block Graph for single GS
+
+
+%% 8.1 Max |x|
 figure; hold on; grid on;
 
-% T = contact_tables_ADMM.Ground_Point_35_Table;
-% 
-% % StartTime, EndTime이 datetime이라고 가정
-% t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
-% t_mid = [start_time; t_mid; end_time];
-% 
-% % 시간순 정렬
-% t_mid = sort(t_mid);
-% 
-% % 다음 contact까지의 시간 차이 [sec]
-% delta_t = seconds(diff(t_mid));
-% 
-% % 마지막 점은 다음 점이 없으므로 제외
-% t_plot = t_mid(1:end-1);
-% 
-% for k = 1:length(delta_t)
-% 
-%     % x축 폭도 delta_t 만큼
-%     x0 = t_plot(k);
-%     x1 = t_plot(k) + seconds(delta_t(k));
-% 
-%     % y축 높이도 delta_t 만큼
-%     y0 = 0;
-%     y1 = delta_t(k);
-% 
-%     patch([x0 x1 x1 x0], ...
-%           [y0 y0 y1 y1]/60, ...
-%           0.8*ones(1,3), ...
-%           'FaceColor', 'c', ...
-%           'FaceAlpha', 0.1, ...
-%           'EdgeColor', 'g', ...
-%           'LineWidth',1.5);
-% end
-
-xlabel('Time');
-ylabel('\Delta t to next contact [min]');
-title('t-\Delta t Square Plot');
-
-
-T = contact_tables_BCD.Ground_Point_10_Table;
+T = contact_tables_L1.Ground_Point_5_Table;
 
 % StartTime, EndTime이 datetime이라고 가정
 t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
@@ -151,8 +123,16 @@ for k = 1:length(delta_t)
           'LineWidth',1.5);
 end
 
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+ylim([0,700])
+title('[Max |x|]Revisit time for Ground Point 5','FontSize',12,'FontWeight','bold');
 
-T = contact_tables_uncontrained.Ground_Point_10_Table;
+%% 8.2 ADMM
+
+figure; hold on; grid on;
+
+T = contact_tables_ADMM.Ground_Point_5_Table;
 
 % StartTime, EndTime이 datetime이라고 가정
 t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
@@ -180,8 +160,98 @@ for k = 1:length(delta_t)
     patch([x0 x1 x1 x0], ...
           [y0 y0 y1 y1]/60, ...
           0.8*ones(1,3), ...
-          'FaceColor', 'r', ...
+          'FaceColor', 'b', ...
           'FaceAlpha', 0.1, ...
-          'EdgeColor', 'b', ...
-          'LineWidth',1);
+          'EdgeColor', 'r', ...
+          'LineWidth',1.5);
 end
+
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+ylim([0,700])
+title('[ADMM]Revisit time for Ground Point 5','FontSize',12,'FontWeight','bold');
+
+%% 8.3 BCD
+
+figure; hold on; grid on;
+T = contact_tables_BCD.Ground_Point_5_Table;
+
+% StartTime, EndTime이 datetime이라고 가정
+t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
+t_mid = [start_time; t_mid; end_time];
+
+% 시간순 정렬
+t_mid = sort(t_mid);
+
+% 다음 contact까지의 시간 차이 [sec]
+delta_t = seconds(diff(t_mid));
+
+% 마지막 점은 다음 점이 없으므로 제외
+t_plot = t_mid(1:end-1);
+
+for k = 1:length(delta_t)
+
+    % x축 폭도 delta_t 만큼
+    x0 = t_plot(k);
+    x1 = t_plot(k) + seconds(delta_t(k));
+
+    % y축 높이도 delta_t 만큼
+    y0 = 0;
+    y1 = delta_t(k);
+
+    patch([x0 x1 x1 x0], ...
+          [y0 y0 y1 y1]/60, ...
+          0.8*ones(1,3), ...
+          'FaceColor', 'b', ...
+          'FaceAlpha', 0.1, ...
+          'EdgeColor', 'r', ...
+          'LineWidth',1.5);
+end
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+ylim([0,700])
+title('[BCD]Revisit time for Ground Point 5','FontSize',12,'FontWeight','bold');
+
+
+%% 8.4 Unconstrained
+
+
+figure; hold on; grid on;
+T = contact_tables_uncontrained.Ground_Point_5_Table;
+
+% StartTime, EndTime이 datetime이라고 가정
+t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
+t_mid = [start_time; t_mid; end_time];
+
+% 시간순 정렬
+t_mid = sort(t_mid);
+
+% 다음 contact까지의 시간 차이 [sec]
+delta_t = seconds(diff(t_mid));
+
+% 마지막 점은 다음 점이 없으므로 제외
+t_plot = t_mid(1:end-1);
+
+for k = 1:length(delta_t)
+
+    % x축 폭도 delta_t 만큼
+    x0 = t_plot(k);
+    x1 = t_plot(k) + seconds(delta_t(k));
+
+    % y축 높이도 delta_t 만큼
+    y0 = 0;
+    y1 = delta_t(k);
+
+    patch([x0 x1 x1 x0], ...
+          [y0 y0 y1 y1]/60, ...
+          0.8*ones(1,3), ...
+          'FaceColor', 'b', ...
+          'FaceAlpha', 0.1, ...
+          'EdgeColor', 'r', ...
+          'LineWidth',1.5);
+end
+
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+ylim([0,700])
+title('[Unconstrained]Revisit time for Ground Point 5','FontSize',12,'FontWeight','bold');

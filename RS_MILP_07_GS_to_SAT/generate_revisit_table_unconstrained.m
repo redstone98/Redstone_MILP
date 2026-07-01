@@ -28,12 +28,10 @@ sat_revisit_time_vector_info = struct();
 satellite_contact_tables = struct();
 sat_revisit_vectors = struct();
 
-sat_revisit_time_vector_combined = [];
-
 for i = 1:length(targets)
 
     sat = targets{i};
-
+    sat_num = str2double(regexp(sat, '\d+', 'match', 'once'));
     % 해당 위성의 모든 지상국 contact 추출
     subTable = T(strcmp(T.Target, sat), :);
     subTable_sorted = sortrows(subTable, 4, "ascend");
@@ -86,22 +84,19 @@ for i = 1:length(targets)
     sat_revisit_vectors.(sprintf('%s_revisit_time_vec', sat)) = sat_revisit_time_vector;
 
     %% Min / Max / Mean 저장
-    Satellite_Revisit_Matrix(i,1) = min(sat_revisit_time_vector);
-    Satellite_Revisit_Matrix(i,2) = max(sat_revisit_time_vector);
+    Satellite_Revisit_Matrix(sat_num,1) = min(sat_revisit_time_vector);
+    Satellite_Revisit_Matrix(sat_num,2) = max(sat_revisit_time_vector);
 
     % 평균 계산 시 0 제외
     sat_revisit_time_vector_nonzero = sat_revisit_time_vector(sat_revisit_time_vector ~= 0);
 
     if isempty(sat_revisit_time_vector_nonzero)
-        Satellite_Revisit_Matrix(i,3) = 0;
+        Satellite_Revisit_Matrix(sat_num,3) = 0;
     else
-        Satellite_Revisit_Matrix(i,3) = mean(sat_revisit_time_vector_nonzero);
+        Satellite_Revisit_Matrix(sat_num,3) = mean(sat_revisit_time_vector_nonzero);
     end
 
-    sat_revisit_time_vector_info.(['satellite' num2str(i)]) = sat_revisit_time_vector_nonzero;
-
-    sat_revisit_time_vector_combined = ...
-        [sat_revisit_time_vector_combined; sat_revisit_time_vector_nonzero];
+    sat_revisit_time_vector_info.(['satellite' num2str(sat_num)]) = sat_revisit_time_vector_nonzero;
 
 end
 

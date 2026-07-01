@@ -12,7 +12,7 @@ targets = unique(T.Target);   % Satellites
 gs_cadence_info = struct();
 
 for gs_index = 1:length(sources)
-    src = sources{gs_index};
+    src = sources{gs_index};    
     subTable = T(strcmp(T.Source, src), :);
     subTable_sorted = sortrows(subTable, 4, "ascend");
     gs_cadence_info.(sprintf('%s_Table', src)) = subTable_sorted;
@@ -33,7 +33,7 @@ sat_revisit_vectors = struct();
 for sat_index = 1:length(targets)
 
     sat = targets{sat_index};
-
+    sat_num = str2double(regexp(sat, '\d+', 'match', 'once'));
     subTable = T(strcmp(T.Target, sat), :);
     subTable_sorted = sortrows(subTable, 4, "ascend");
 
@@ -83,18 +83,18 @@ for sat_index = 1:length(targets)
     sat_revisit_vectors.(sprintf('%s_revisit_time_vec', sat)) = sat_revisit_time_vector;
 
     %% Min / Max / Mean
-    Satellite_Revisit_Matrix(sat_index,1) = min(sat_revisit_time_vector);
-    Satellite_Revisit_Matrix(sat_index,2) = max(sat_revisit_time_vector);
+    Satellite_Revisit_Matrix(sat_num,1) = min(sat_revisit_time_vector);
+    Satellite_Revisit_Matrix(sat_num,2) = max(sat_revisit_time_vector);
 
     sat_revisit_time_vector_nonzero = sat_revisit_time_vector(sat_revisit_time_vector ~= 0);
 
     if isempty(sat_revisit_time_vector_nonzero)
-        Satellite_Revisit_Matrix(sat_index,3) = 0;
+        Satellite_Revisit_Matrix(sat_num,3) = 0;
     else
-        Satellite_Revisit_Matrix(sat_index,3) = mean(sat_revisit_time_vector_nonzero);
+        Satellite_Revisit_Matrix(sat_num,3) = mean(sat_revisit_time_vector_nonzero);
     end
 
-    sat_revisit_time_vector_info.(['satellite' num2str(sat_index)]) = sat_revisit_time_vector_nonzero;
+    sat_revisit_time_vector_info.(['satellite' num2str(sat_num)]) = sat_revisit_time_vector_nonzero;
 
 end
 

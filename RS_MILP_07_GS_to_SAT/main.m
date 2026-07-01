@@ -31,8 +31,8 @@ end_time = start_time_original + seconds(max(A_matrix(:,3)));
 t_start = A_matrix(1,3);
 t_end = A_matrix(end,3);
 
-% Satellite Cadence Constraint
-tau = 300;
+% Cadence Constraint
+tau = 50;
 % Number of SATs
 number_of_SAT = 48;
 % Number of GSs
@@ -40,7 +40,7 @@ number_of_GS = 31;
 
 
 %2.1 Unconstrained Result
-[revisit_time_vector_info_uncontrained, contact_tables_uncontrained, revisit_vectors_uncontrained, satellite_cadence_info_unconstrained] = generate_revisit_table_unconstrained(access_interval_table_sorted, A_matrix, start_time);
+[revisit_time_vector_info_uncontrained, contact_tables_uncontrained, revisit_vectors_uncontrained, GS_cadence_info_unconstrained] = generate_revisit_table_unconstrained(access_interval_table_sorted, A_matrix, start_time);
 
 
 
@@ -69,7 +69,6 @@ x_BCD(abs(x_BCD) < 1e-1) = 0;
 row_index_BCD = x_BCD .* A_matrix(:,4);
 row_index_BCD = row_index_BCD(row_index_BCD ~= 0);
 
-
 [revisit_time_vector_info, contact_tables_BCD, revisit_vectors_BCD, GS_cadence_info_BCD] = generate_revisit_table_BCD(access_interval_table, row_index_BCD, A_matrix, tau);
 
 
@@ -87,46 +86,7 @@ row_index_ADMM = row_index_ADMM(row_index_ADMM ~= 0);
 %% 8. Plot the Revisit Block Graph for single GS
 figure; hold on; grid on;
 
-T = contact_tables_ADMM.SAT_23_Table;
-
-% StartTime, EndTime이 datetime이라고 가정
-t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
-t_mid = [start_time; t_mid; end_time];
-
-% 시간순 정렬
-t_mid = sort(t_mid);
-
-% 다음 contact까지의 시간 차이 [sec]
-delta_t = seconds(diff(t_mid));
-
-% 마지막 점은 다음 점이 없으므로 제외
-t_plot = t_mid(1:end-1);
-
-for k = 1:length(delta_t)
-
-    % x축 폭도 delta_t 만큼
-    x0 = t_plot(k);
-    x1 = t_plot(k) + seconds(delta_t(k));
-
-    % y축 높이도 delta_t 만큼
-    y0 = 0;
-    y1 = delta_t(k);
-
-    patch([x0 x1 x1 x0], ...
-          [y0 y0 y1 y1]/60, ...
-          0.8*ones(1,3), ...
-          'FaceColor', 'c', ...
-          'FaceAlpha', 0.1, ...
-          'EdgeColor', 'g', ...
-          'LineWidth',1.5);
-end
-
-xlabel('Time');
-ylabel('\Delta t to next contact [min]');
-title('t-\Delta t Square Plot');
-
-
-T = contact_tables_BCD.SAT_23_Table;
+T = contact_tables_ADMM.SAT_6_Table;
 
 % StartTime, EndTime이 datetime이라고 가정
 t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
@@ -160,7 +120,12 @@ for k = 1:length(delta_t)
           'LineWidth',1.5);
 end
 
-T = contact_tables_uncontrained.SAT_23_Table;
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+title('[ADMM] Observation Cadence for SAT 6','FontSize',12,'FontWeight','bold');
+
+figure; hold on; grid on;
+T = contact_tables_BCD.SAT_6_Table;
 
 % StartTime, EndTime이 datetime이라고 가정
 t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
@@ -188,8 +153,49 @@ for k = 1:length(delta_t)
     patch([x0 x1 x1 x0], ...
           [y0 y0 y1 y1]/60, ...
           0.8*ones(1,3), ...
-          'FaceColor', 'r', ...
+          'FaceColor', 'b', ...
           'FaceAlpha', 0.1, ...
-          'EdgeColor', 'b', ...
-          'LineWidth',1);
+          'EdgeColor', 'r', ...
+          'LineWidth',1.5);
 end
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+title('[BCD] Observation Cadence for SAT 6','FontSize',12,'FontWeight','bold');
+
+figure; hold on; grid on
+T = contact_tables_uncontrained.SAT_6_Table;
+
+% StartTime, EndTime이 datetime이라고 가정
+t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
+t_mid = [start_time; t_mid; end_time];
+
+% 시간순 정렬
+t_mid = sort(t_mid);
+
+% 다음 contact까지의 시간 차이 [sec]
+delta_t = seconds(diff(t_mid));
+
+% 마지막 점은 다음 점이 없으므로 제외
+t_plot = t_mid(1:end-1);
+
+for k = 1:length(delta_t)
+
+    % x축 폭도 delta_t 만큼
+    x0 = t_plot(k);
+    x1 = t_plot(k) + seconds(delta_t(k));
+
+    % y축 높이도 delta_t 만큼
+    y0 = 0;
+    y1 = delta_t(k);
+
+    patch([x0 x1 x1 x0], ...
+          [y0 y0 y1 y1]/60, ...
+          0.8*ones(1,3), ...
+          'FaceColor', 'b', ...
+          'FaceAlpha', 0.1, ...
+          'EdgeColor', 'r', ...
+          'LineWidth',1.5);
+end
+xlabel('Time','FontSize',11,'FontWeight','bold');
+ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+title('[uncontrained] Observation Cadence for SAT 6','FontSize',12,'FontWeight','bold');
