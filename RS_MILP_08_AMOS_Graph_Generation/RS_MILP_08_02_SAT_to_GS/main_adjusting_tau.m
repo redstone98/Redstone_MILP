@@ -58,9 +58,21 @@ tau = 1000;
 % 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
 [x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
 x_L2(abs(x_L2) < 1e-1) = 0;
+z_BCD(abs(z_BCD) < 1e-1) = 0;
+z_BCD(abs(z_BCD) > 0.9) = 1;
 row_index_L2 = x_L2 .* A_matrix(:,4);
 row_index_L2 = row_index_L2(row_index_L2 ~= 0);
 [revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2(access_interval_table, row_index_L2, A_matrix, tau);
+
+ fprintf('-----------<Total result>------------ \n')
+ fprintf('tau = %d \n',tau);
+ fprintf('total contact = %d \n' , sum(x_L2));
+ fprintf('cost function (sec^2) = %d \n', sum(gvec.^2 .* z_BCD));
+ fprintf('max_revisit (min) = %4.4f \n', max(gvec .*z_BCD)/60);
+ fprintf('mean_revisit (min) = %4.4f \n', sum(gvec .*z_BCD)/sum(x_L2)/60);
+ fprintf('-----------<end>-------------- \n')
+
+
 
 % 
 % filename = 'GS_to_SAT_Observation_Table';
