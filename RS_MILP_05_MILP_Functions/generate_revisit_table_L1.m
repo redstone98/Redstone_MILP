@@ -103,7 +103,7 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
     errorbar(x, mean_value, mean_value-min_value, max_value-mean_value,'*','LineStyle','none','color','b','MarkerEdgeColor','r')
     legend('Min, Max, Mean Revisit Time Data','Location','southoutside')    
     hold off
-    title("Revisit Time Result (Maximixe |x|, tau = " + tau + " sec)", 'FontSize',12,'FontWeight','bold');
+    title("Revisit Time Result (Maximixe |x| (L_1), tau = " + tau + " sec)", 'FontSize',12,'FontWeight','bold');
     xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)

@@ -111,12 +111,12 @@ errorbar(x, mean_value, mean_value-min_value, max_value-mean_value, ...
 
 legend('Min, Max, Mean Satellite Revisit Time Data', 'Location', 'southoutside')
 
-title("Single GS: SAT Observation Gap (BCD, tau = " + tau + " secs, tau_2 = "+ tau_selected + " secs)", ...
+title("Single GS: SAT Observation Gap (BCD, tau = " + tau + " secs)", ...
     'FontSize', 12, 'FontWeight', 'bold');
 
 xlabel('Satellite Index', 'FontSize', 11, 'FontWeight', 'bold')
 ylabel('Satellite Contact Cadence (Hours)', 'FontSize', 11, 'FontWeight', 'bold')
 
 xlim([0, length(targets)+1])
-ylim([0,10])
+ylim([0,11])
 end

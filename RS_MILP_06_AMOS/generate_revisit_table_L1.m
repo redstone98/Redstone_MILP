@@ -107,7 +107,7 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
     xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)
-        ylim([0,16])
+        % ylim([0,16])
 
 
 end

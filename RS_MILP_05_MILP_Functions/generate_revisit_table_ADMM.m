@@ -97,12 +97,12 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
 
     figure;
     errorbar(x, mean_value, mean_value-min_value, max_value-mean_value,'*','LineStyle','none','color','b','MarkerEdgeColor','r')
-   title(sprintf('Revisit Time Result (ADMM, tau = %d sec, \\rho = %.0e)', tau, rho), 'FontSize',12,'FontWeight','bold');
+   title(sprintf('Revisit Time Result (L_2, ADMM, tau = %d sec, \\rho = %.0e)', tau, rho), 'FontSize',12,'FontWeight','bold');
     xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
     ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
     legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)
-    ylim([0,16])
+    ylim([0,8])
 
 
 end

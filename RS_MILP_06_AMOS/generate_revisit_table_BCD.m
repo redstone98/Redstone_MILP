@@ -98,17 +98,17 @@ function [revisit_time_vector_info, contact_tables, revisit_vectors, satellite_c
    
     % Revisit Time Matrix의 값을 그래프로 출력
     x = 1:length(Revisit_Matrix(:,1));
-    min_value = (Revisit_Matrix(:,1))/3600;
-    max_value = (Revisit_Matrix(:,2))/3600;
-    mean_value = (Revisit_Matrix(:,3))/3600;
+    min_value = (Revisit_Matrix(:,1))/60;
+    max_value = (Revisit_Matrix(:,2))/60;
+    mean_value = (Revisit_Matrix(:,3))/60;
     errorbar(x, mean_value, mean_value-min_value, max_value-mean_value,'*','LineStyle','none','color','b','MarkerEdgeColor','r')
-    legend('Min, Max, Mean Revisit Time Data','Location','southoutside')    
+    % legend('Min, Max, Mean Revisit Time Data','Location','southoutside')    
     hold off
-    title("Revisit Time Result (BCD, tau = " + tau + " sec)", 'FontSize',12,'FontWeight','bold');
-    xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
-    ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
+    title("6G Constellation Communication Period (BCD, tau = " + tau + " sec, 4 Payloads)", 'FontSize',12,'FontWeight','bold');
+    xlabel('Ground Gateway Index','FontSize',11,'FontWeight','bold')
+    ylabel('Communication Period (Minutes)','FontSize',11,'FontWeight','bold')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)
-        ylim([0,16])
+      % ylim([0,60])
 
 
 end

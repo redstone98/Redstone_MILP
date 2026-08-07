@@ -88,24 +88,29 @@ squaresum_revisit_unconstrained = 0;
 
         Revisit_Matrix(sat_num,3) = mean(revisit_time_vector);
         revisit_time_vector_combined = [revisit_time_vector_combined;revisit_time_vector];
+
+
        revisit_time_vector_info.(['source' num2str(sat_num)]) = revisit_time_vector;
 
        squaresum_revisit_unconstrained = squaresum_revisit_unconstrained + sum(revisit_time_vector.^2);
     end
+         fprintf('unconstrained cost_function (sec^2) = %d \n', squaresum_revisit_unconstrained)
+         fprintf('unconstrained max_revisit (min) = %4.4f \n', max(revisit_time_vector_combined )/60);
+         fprintf('unconstrained mean_revisit (min) = %4.4f \n', mean(revisit_time_vector_combined)/60);
 
     % Revisit Time Matrix의 값을 그래프로 출력
     x = 1:length(Revisit_Matrix(:,1));
-    min_value = (Revisit_Matrix(:,1))/3600;
-    max_value = (Revisit_Matrix(:,2))/3600;
-    mean_value = (Revisit_Matrix(:,3))/3600;
+    min_value = (Revisit_Matrix(:,1))/60;
+    max_value = (Revisit_Matrix(:,2))/60;
+    mean_value = (Revisit_Matrix(:,3))/60;
 
     figure;
     errorbar(x, mean_value, mean_value-min_value, max_value-mean_value,'*','LineStyle','none','color','b','MarkerEdgeColor','r')
-    title('Revisit Time Result (Unconstrained)','FontSize',12,'FontWeight','bold');
-    xlabel('Ground Observation Point Index','FontSize',11,'FontWeight','bold')
-    ylabel('Revisit Time (Hours)','FontSize',11,'FontWeight','bold')
-    legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
+    title('6G Constellation Communication Period (Unconstrained)','FontSize',12,'FontWeight','bold');
+    xlabel('Ground Gateway Index','FontSize',11,'FontWeight','bold')
+    ylabel('Communication Period (Minutes)','FontSize',11,'FontWeight','bold')
+    % legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)  
-    ylim([0,16])
+    ylim([0,5])
 
 end

@@ -27,7 +27,7 @@ Satellite_Revisit_Matrix = zeros(length(targets), 3);
 sat_revisit_time_vector_info = struct();
 satellite_contact_tables = struct();
 sat_revisit_vectors = struct();
-
+collected_revisit_time_info = [];
 for i = 1:length(targets)
 
     sat = targets{i};
@@ -89,6 +89,7 @@ for i = 1:length(targets)
 
     % 평균 계산 시 0 제외
     sat_revisit_time_vector_nonzero = sat_revisit_time_vector(sat_revisit_time_vector ~= 0);
+    collected_revisit_time_info = [collected_revisit_time_info; sat_revisit_time_vector_nonzero];
 
     if isempty(sat_revisit_time_vector_nonzero)
         Satellite_Revisit_Matrix(sat_num,3) = 0;
@@ -99,6 +100,10 @@ for i = 1:length(targets)
     sat_revisit_time_vector_info.(['satellite' num2str(sat_num)]) = sat_revisit_time_vector_nonzero;
 
 end
+
+         fprintf('unconstrained cost_function (sec^2) = %d \n', sum(collected_revisit_time_info.^2));
+         fprintf('unconstrained max_revisit (min) = %4.4f \n', max(collected_revisit_time_info)/60);
+         fprintf('unconstrained mean_revisit (min) = %4.4f \n', mean(collected_revisit_time_info)/60);
 
 %% Plot: x축 = Satellite Index, y축 = Any-GS Revisit Time
 x = 1:length(targets);
@@ -119,5 +124,5 @@ ylabel('Satellite Contact Cadence (Hours)', 'FontSize', 11, 'FontWeight', 'bold'
 
 legend('Min, Max, Mean Satellite Revisit Time Data', 'Location', 'southoutside')
 xlim([0, length(targets)+1])
-ylim([0,10])
+ylim([0,11])
 end

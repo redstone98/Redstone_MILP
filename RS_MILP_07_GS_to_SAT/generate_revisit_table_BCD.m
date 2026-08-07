@@ -118,5 +118,5 @@ xlabel('Satellite Index', 'FontSize', 11, 'FontWeight', 'bold')
 ylabel('Revisit Time to Any Ground Station (Hours)', 'FontSize', 11, 'FontWeight', 'bold')
 
 xlim([0, length(targets)+1])
-
+ylim([0,11])
 end
