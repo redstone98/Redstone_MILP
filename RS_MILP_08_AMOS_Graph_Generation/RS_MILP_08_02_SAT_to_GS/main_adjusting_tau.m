@@ -45,7 +45,7 @@ number_of_GS = 54;
 
 
 %% Satellite Cadence Constraint = 1000
-tau = 1000;
+tau = 4000;
 % 3. Generate Selection Matrices
 [E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
 
@@ -69,7 +69,9 @@ row_index_L2 = row_index_L2(row_index_L2 ~= 0);
  fprintf('total contact = %d \n' , sum(x_L2));
  fprintf('cost function (sec^2) = %d \n', sum(gvec.^2 .* z_BCD));
  fprintf('max_revisit (min) = %4.4f \n', max(gvec .*z_BCD)/60);
- fprintf('mean_revisit (min) = %4.4f \n', sum(gvec .*z_BCD)/sum(x_L2)/60);
+ activated_revisit_time = gvec .*z_BCD;
+ nonzero_revisit_time = activated_revisit_time(activated_revisit_time~=0);
+ fprintf('mean_revisit (min) = %4.4f \n', mean(nonzero_revisit_time/60));
  fprintf('-----------<end>-------------- \n')
 
 

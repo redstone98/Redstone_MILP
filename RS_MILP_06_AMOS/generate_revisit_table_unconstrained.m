@@ -111,6 +111,6 @@ squaresum_revisit_unconstrained = 0;
     ylabel('Communication Period (Minutes)','FontSize',11,'FontWeight','bold')
     % legend('Min, Max, Mean Revisit Time Data','Location','southoutside')
     xlim([-1, length(Revisit_Matrix(:,1))]+1)  
-    ylim([0,5])
+    ylim([0,60])
 
 end

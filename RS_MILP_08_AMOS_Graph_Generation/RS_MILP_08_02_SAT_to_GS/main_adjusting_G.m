@@ -7,14 +7,14 @@ addpath ~/Desktop/Redstone_MILP/RS_MILP_08_AMOS_Graph_Generation/RS_MILP_08_02_S
 addpath ~/Desktop/Redstone_MILP/RS_MILP_01_Config_MILP/
 addpath ~/Desktop/Redstone_MILP/RS_MILP_06_AMOS/
 savepath
-% load('Scenario_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','SAT_GS_access_interval')
-load('EOIR_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','EOIR_access_interval')
+load('Scenario_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','SAT_GS_access_interval')
+% load('EOIR_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','EOIR_access_interval')
 
 start_time_original = datetime(2030, 1, 1, 0, 0, 0,'TimeZone','UTC');
 
 %% 1. Generate A matrix from contact chart
-% access_interval_table = SAT_GS_access_interval;
-access_interval_table = EOIR_access_interval;
+access_interval_table = SAT_GS_access_interval;
+% access_interval_table = EOIR_access_interval;
 A_matrix = generate_A_matrix(access_interval_table, start_time_original);
 
 
@@ -34,7 +34,7 @@ t_start = A_matrix(1,3);
 t_end = A_matrix(end,3);
 
 %% Select ground station to amplify
-selected_gs = 32;
+selected_gs = 15;
 
 %% Number of SATs
 number_of_SAT = 48;
@@ -93,8 +93,8 @@ ylim([0,500])
 title("Lattice Result for GS = "+ selected_gs +", (Unconstrained)", 'FontSize',12,'FontWeight','bold');
 
 %% Selected GS = 15, k = 1
-tau = 40;
-k_value = 1;
+tau = 4000;
+k_value = 5;
 % 3. Generate Selection Matrices
 [E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
 
@@ -113,6 +113,19 @@ x_L2(abs(x_L2) < 1e-1) = 0;
 row_index_L2 = x_L2 .* A_matrix(:,4);
 row_index_L2 = row_index_L2(row_index_L2 ~= 0);
 [revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
+
+
+ fprintf('-----------<Total result>------------ \n')
+ fprintf('tau = %d \n',tau);
+ fprintf('k value = %4.1f \n',k_value);
+ fprintf('total contact = %d \n' , sum(x_L2));
+ fprintf('cost function (sec^2) = %d \n', sum(gvec.^2 .* z_BCD));
+ fprintf('max_revisit (min) = %4.4f \n', max(gvec .*z_BCD)/60);
+ activated_revisit_time = gvec .*z_BCD;
+ nonzero_revisit_time = activated_revisit_time(activated_revisit_time~=0);
+ fprintf('mean_revisit (min) = %4.4f \n', mean(nonzero_revisit_time/60));
+ fprintf('-----------<end>-------------- \n')
+
 
 
 figure; hold on; grid on;
@@ -155,192 +168,192 @@ xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
 ylim([0,500])
 title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
 
-%% Selected GS = 32, k = 1.25
-k_value = 2;
-% 3. Generate Selection Matrices
-[E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
-
-% 4. Generate A, b, P for Ax=<b by given tau
-[A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
-
-% 5. Generate E, f, g_vec for z >= Ex + f - 1
-k_vector = ones(number_of_GS,1);
-k_vector(selected_gs) = k_value;
-
-[E, f_vector, gvec] = generate_E_f_G_adjust_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
-
-% 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
-[x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
-x_L2(abs(x_L2) < 1e-1) = 0;
-row_index_L2 = x_L2 .* A_matrix(:,4);
-row_index_L2 = row_index_L2(row_index_L2 ~= 0);
-[revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
-
-
-figure; hold on; grid on;
-T = contact_tables_L2.Ground_Point_32_Table;
-
-% StartTime, EndTime이 datetime이라고 가정
-t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
-t_mid = [start_time; t_mid; end_time];
-
-% 시간순 정렬
-t_mid = sort(t_mid);
-
-% 다음 contact까지의 시간 차이 [sec]
-delta_t = seconds(diff(t_mid));
-
-% 마지막 점은 다음 점이 없으므로 제외
-t_plot = t_mid(1:end-1);
-
-for k = 1:length(delta_t)
-
-    % x축 폭도 delta_t 만큼
-    x0 = t_plot(k);
-    x1 = t_plot(k) + seconds(delta_t(k));
-
-    % y축 높이도 delta_t 만큼
-    y0 = 0;
-    y1 = delta_t(k);
-
-    patch([x0 x1 x1 x0], ...
-          [y0 y0 y1 y1]/60, ...
-          0.8*ones(1,3), ...
-          'FaceColor', 'b', ...
-          'FaceAlpha', 0.1, ...
-          'EdgeColor', 'r', ...
-          'LineWidth',1.5);
-end
-xlabel('Time','FontSize',11,'FontWeight','bold');
-ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
-xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
-ylim([0,500])
-title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
-
-%% Selected GS = 32, k = 3
-k_value = 3;
-% 3. Generate Selection Matrices
-[E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
-
-% 4. Generate A, b, P for Ax=<b by given tau
-[A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
-
-% 5. Generate E, f, g_vec for z >= Ex + f - 1
-k_vector = ones(number_of_GS,1);
-k_vector(selected_gs) = k_value;
-
-[E, f_vector, gvec] = generate_E_f_G_adjust_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
-
-% 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
-[x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
-x_L2(abs(x_L2) < 1e-1) = 0;
-row_index_L2 = x_L2 .* A_matrix(:,4);
-row_index_L2 = row_index_L2(row_index_L2 ~= 0);
-[revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
-
-
-figure; hold on; grid on;
-T = contact_tables_L2.Ground_Point_32_Table;
-
-% StartTime, EndTime이 datetime이라고 가정
-t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
-t_mid = [start_time; t_mid; end_time];
-
-% 시간순 정렬
-t_mid = sort(t_mid);
-
-% 다음 contact까지의 시간 차이 [sec]
-delta_t = seconds(diff(t_mid));
-
-% 마지막 점은 다음 점이 없으므로 제외
-t_plot = t_mid(1:end-1);
-
-for k = 1:length(delta_t)
-
-    % x축 폭도 delta_t 만큼
-    x0 = t_plot(k);
-    x1 = t_plot(k) + seconds(delta_t(k));
-
-    % y축 높이도 delta_t 만큼
-    y0 = 0;
-    y1 = delta_t(k);
-
-    patch([x0 x1 x1 x0], ...
-          [y0 y0 y1 y1]/60, ...
-          0.8*ones(1,3), ...
-          'FaceColor', 'b', ...
-          'FaceAlpha', 0.1, ...
-          'EdgeColor', 'r', ...
-          'LineWidth',1.5);
-end
-xlabel('Time','FontSize',11,'FontWeight','bold');
-ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
-xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
-ylim([0,500])
-title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
-
-
-
-%% Selected GS = 32, k = 4
-k_value = 4;
-% 3. Generate Selection Matrices
-[E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
-
-% 4. Generate A, b, P for Ax=<b by given tau
-[A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
-
-% 5. Generate E, f, g_vec for z >= Ex + f - 1
-k_vector = ones(number_of_GS,1);
-k_vector(selected_gs) = k_value;
-
-[E, f_vector, gvec] = generate_E_f_G_adjust_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
-
-% 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
-[x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
-x_L2(abs(x_L2) < 1e-1) = 0;
-row_index_L2 = x_L2 .* A_matrix(:,4);
-row_index_L2 = row_index_L2(row_index_L2 ~= 0);
-[revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
-
-
-figure; hold on; grid on;
-T = contact_tables_L2.Ground_Point_32_Table;
-
-% StartTime, EndTime이 datetime이라고 가정
-t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
-t_mid = [start_time; t_mid; end_time];
-
-% 시간순 정렬
-t_mid = sort(t_mid);
-
-% 다음 contact까지의 시간 차이 [sec]
-delta_t = seconds(diff(t_mid));
-
-% 마지막 점은 다음 점이 없으므로 제외
-t_plot = t_mid(1:end-1);
-
-for k = 1:length(delta_t)
-
-    % x축 폭도 delta_t 만큼
-    x0 = t_plot(k);
-    x1 = t_plot(k) + seconds(delta_t(k));
-
-    % y축 높이도 delta_t 만큼
-    y0 = 0;
-    y1 = delta_t(k);
-
-    patch([x0 x1 x1 x0], ...
-          [y0 y0 y1 y1]/60, ...
-          0.8*ones(1,3), ...
-          'FaceColor', 'b', ...
-          'FaceAlpha', 0.1, ...
-          'EdgeColor', 'r', ...
-          'LineWidth',1.5);
-end
-xlabel('Time','FontSize',11,'FontWeight','bold');
-ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
-xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
-ylim([0,500])
-title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
-
-
+% %% Selected GS = 32, k = 1.25
+% k_value = 2;
+% % 3. Generate Selection Matrices
+% [E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
+% 
+% % 4. Generate A, b, P for Ax=<b by given tau
+% [A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
+% 
+% % 5. Generate E, f, g_vec for z >= Ex + f - 1
+% k_vector = ones(number_of_GS,1);
+% k_vector(selected_gs) = k_value;
+% 
+% [E, f_vector, gvec] = generate_E_f_G_adjust_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
+% 
+% % 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
+% [x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
+% x_L2(abs(x_L2) < 1e-1) = 0;
+% row_index_L2 = x_L2 .* A_matrix(:,4);
+% row_index_L2 = row_index_L2(row_index_L2 ~= 0);
+% [revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
+% 
+% 
+% figure; hold on; grid on;
+% T = contact_tables_L2.Ground_Point_32_Table;
+% 
+% % StartTime, EndTime이 datetime이라고 가정
+% t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
+% t_mid = [start_time; t_mid; end_time];
+% 
+% % 시간순 정렬
+% t_mid = sort(t_mid);
+% 
+% % 다음 contact까지의 시간 차이 [sec]
+% delta_t = seconds(diff(t_mid));
+% 
+% % 마지막 점은 다음 점이 없으므로 제외
+% t_plot = t_mid(1:end-1);
+% 
+% for k = 1:length(delta_t)
+% 
+%     % x축 폭도 delta_t 만큼
+%     x0 = t_plot(k);
+%     x1 = t_plot(k) + seconds(delta_t(k));
+% 
+%     % y축 높이도 delta_t 만큼
+%     y0 = 0;
+%     y1 = delta_t(k);
+% 
+%     patch([x0 x1 x1 x0], ...
+%           [y0 y0 y1 y1]/60, ...
+%           0.8*ones(1,3), ...
+%           'FaceColor', 'b', ...
+%           'FaceAlpha', 0.1, ...
+%           'EdgeColor', 'r', ...
+%           'LineWidth',1.5);
+% end
+% xlabel('Time','FontSize',11,'FontWeight','bold');
+% ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+% xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
+% ylim([0,500])
+% title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
+% 
+% %% Selected GS = 32, k = 3
+% k_value = 3;
+% % 3. Generate Selection Matrices
+% [E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
+% 
+% % 4. Generate A, b, P for Ax=<b by given tau
+% [A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
+% 
+% % 5. Generate E, f, g_vec for z >= Ex + f - 1
+% k_vector = ones(number_of_GS,1);
+% k_vector(selected_gs) = k_value;
+% 
+% [E, f_vector, gvec] = generate_E_f_G_adjust_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
+% 
+% % 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
+% [x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
+% x_L2(abs(x_L2) < 1e-1) = 0;
+% row_index_L2 = x_L2 .* A_matrix(:,4);
+% row_index_L2 = row_index_L2(row_index_L2 ~= 0);
+% [revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
+% 
+% 
+% figure; hold on; grid on;
+% T = contact_tables_L2.Ground_Point_32_Table;
+% 
+% % StartTime, EndTime이 datetime이라고 가정
+% t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
+% t_mid = [start_time; t_mid; end_time];
+% 
+% % 시간순 정렬
+% t_mid = sort(t_mid);
+% 
+% % 다음 contact까지의 시간 차이 [sec]
+% delta_t = seconds(diff(t_mid));
+% 
+% % 마지막 점은 다음 점이 없으므로 제외
+% t_plot = t_mid(1:end-1);
+% 
+% for k = 1:length(delta_t)
+% 
+%     % x축 폭도 delta_t 만큼
+%     x0 = t_plot(k);
+%     x1 = t_plot(k) + seconds(delta_t(k));
+% 
+%     % y축 높이도 delta_t 만큼
+%     y0 = 0;
+%     y1 = delta_t(k);
+% 
+%     patch([x0 x1 x1 x0], ...
+%           [y0 y0 y1 y1]/60, ...
+%           0.8*ones(1,3), ...
+%           'FaceColor', 'b', ...
+%           'FaceAlpha', 0.1, ...
+%           'EdgeColor', 'r', ...
+%           'LineWidth',1.5);
+% end
+% xlabel('Time','FontSize',11,'FontWeight','bold');
+% ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+% xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
+% ylim([0,500])
+% title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
+% 
+% 
+% 
+% %% Selected GS = 32, k = 4
+% k_value = 4;
+% % 3. Generate Selection Matrices
+% [E1_Si, E2_Si_x, E2_Si_t, E1_Gj, E2_Gj_x, E2_Gj_t] = generate_selection_matrics(A_matrix, number_of_SAT,number_of_GS);
+% 
+% % 4. Generate A, b, P for Ax=<b by given tau
+% [A, b, P_matrix, A_si_info, b_si_info, S_i_info, U_i_info, V_i_info] = generate_A_and_b(A_matrix, number_of_SAT, tau, E1_Si, E2_Si_x, E2_Si_t);
+% 
+% % 5. Generate E, f, g_vec for z >= Ex + f - 1
+% k_vector = ones(number_of_GS,1);
+% k_vector(selected_gs) = k_value;
+% 
+% [E, f_vector, gvec] = generate_E_f_G_adjust_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
+% 
+% % 6. Block Coordiate Decent Optimization Solver (Use HiGHS)
+% [x_L2,z_BCD, x_history_BCD, z_history_BCD] = solve_BCD(A_matrix, number_of_SAT, A_si_info, b_si_info, E, P_matrix, f_vector, gvec ,E1_Si, S_i_info, U_i_info);
+% x_L2(abs(x_L2) < 1e-1) = 0;
+% row_index_L2 = x_L2 .* A_matrix(:,4);
+% row_index_L2 = row_index_L2(row_index_L2 ~= 0);
+% [revisit_time_vector_L2, contact_tables_L2, revisit_vectors_L2, satellite_cadence_info_L2] = generate_revisit_table_L2_adjust_G(access_interval_table, row_index_L2, A_matrix, tau, selected_gs, k_value);
+% 
+% 
+% figure; hold on; grid on;
+% T = contact_tables_L2.Ground_Point_32_Table;
+% 
+% % StartTime, EndTime이 datetime이라고 가정
+% t_mid = T.StartTime + (T.EndTime - T.StartTime)/2;
+% t_mid = [start_time; t_mid; end_time];
+% 
+% % 시간순 정렬
+% t_mid = sort(t_mid);
+% 
+% % 다음 contact까지의 시간 차이 [sec]
+% delta_t = seconds(diff(t_mid));
+% 
+% % 마지막 점은 다음 점이 없으므로 제외
+% t_plot = t_mid(1:end-1);
+% 
+% for k = 1:length(delta_t)
+% 
+%     % x축 폭도 delta_t 만큼
+%     x0 = t_plot(k);
+%     x1 = t_plot(k) + seconds(delta_t(k));
+% 
+%     % y축 높이도 delta_t 만큼
+%     y0 = 0;
+%     y1 = delta_t(k);
+% 
+%     patch([x0 x1 x1 x0], ...
+%           [y0 y0 y1 y1]/60, ...
+%           0.8*ones(1,3), ...
+%           'FaceColor', 'b', ...
+%           'FaceAlpha', 0.1, ...
+%           'EdgeColor', 'r', ...
+%           'LineWidth',1.5);
+% end
+% xlabel('Time','FontSize',11,'FontWeight','bold');
+% ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
+% xlim([t_plot(1), t_plot(k) + seconds(delta_t(k))])
+% ylim([0,500])
+% title("Lattice Result for GS = "+ selected_gs +", (L_2 BCD, tau = " + tau + " sec, k = " + k_value + ")", 'FontSize',12,'FontWeight','bold');
+% 
+% 

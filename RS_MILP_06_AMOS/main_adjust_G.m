@@ -6,15 +6,15 @@ clc;
 addpath ~/Desktop/Redstone_MILP/RS_MILP_06_AMOS/
 addpath ~/Desktop/Redstone_MILP/RS_MILP_01_Config_MILP/
 savepath
-% load('Scenario_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','SAT_GS_access_interval')
+load('Scenario_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','SAT_GS_access_interval')
 % load('Constellation_6G_128_SATs_16_Orbit_Planes_4_Payloads_40_inc_1hours_access_interval')
 % load('EOIR_48_SATs_12_Orbit_Planes_98_inc_7days_access_interval.mat','EOIR_access_interval')
-load('Constellation_6G_128_SATs_16_Orbit_Planes_4_Payloads_38_inc_1hours_access_interval')
+% load('Constellation_6G_128_SATs_16_Orbit_Planes_4_Payloads_38_inc_1hours_access_interval')
 start_time_original = datetime(2030, 1, 1, 0, 0, 0,'TimeZone','UTC');
 
 %% 1. Generate A matrix from contact chart
-access_interval_table = SAT_GS_access_interval_modified;
-% access_interval_table = SAT_GS_access_interval;
+% access_interval_table = SAT_GS_access_interval_modified;
+access_interval_table = SAT_GS_access_interval;
 % access_interval_table = EOIR_access_interval;
 A_matrix = generate_A_matrix(access_interval_table, start_time_original);
 
@@ -23,8 +23,8 @@ A_matrix = generate_A_matrix(access_interval_table, start_time_original);
 % N = number of missions
 
 start_index = 1;
-% number_of_missions = 1500;
-number_of_missions = length(A_matrix(:,1));
+number_of_missions = 1500;
+% number_of_missions = length(A_matrix(:,1));
 
 A_matrix = A_matrix(start_index:number_of_missions,:);
 access_interval_table_sorted = access_interval_table(A_matrix(:,4),:);
@@ -36,11 +36,11 @@ t_start = A_matrix(1,3);
 t_end = A_matrix(end,3);
 
 % Satellite Cadence Constraint
-tau = 20;
+tau = 4000;
 % Number of SATs
-number_of_SAT = 128*4;
+number_of_SAT = 48;
 % Number of GSs
-number_of_GS = 56;
+number_of_GS = 54;
 
 
 %2.1 Unconstrained Result
@@ -72,8 +72,8 @@ k_vector = ones(number_of_GS,1);
 [E, f_vector, gvec_original] = generate_E_f_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
 
 
-% % 1, 1.25, 1.5, 10
-% k_vector(15) = 2;
+% 1, 1.25, 1.5, 10
+k_vector(15) = 1;
 
 [E, f_vector, gvec] = generate_E_f_G(A_matrix, number_of_GS, E1_Gj, E2_Gj_x, E2_Gj_t, t_start, t_end, k_vector);
 
@@ -85,8 +85,9 @@ z_BCD(abs(z_BCD) > 0.9) = 1;
 row_index_BCD = x_BCD .* A_matrix(:,4);
 row_index_BCD = round(row_index_BCD(row_index_BCD ~= 0));
 %% 
- fprintf('-----------<4 Payloads result>------------ \n')
+ fprintf('-----------<Total result>------------ \n')
  fprintf('tau = %d \n',tau);
+ fprintf('k_value = %4.1f \n', k_vector(15));
  fprintf('total contact = %d \n' , sum(x_BCD));
  fprintf('cost function (sec^2) = %d \n', sum(gvec_original.^2 .* z_BCD));
  fprintf('max_revisit (min) = %4.4f \n', max(gvec_original .*z_BCD)/60);
@@ -198,15 +199,15 @@ ylabel('\Delta t to next contact [min]','FontSize',11,'FontWeight','bold');
 % ylim([0,700])
 title('[BCD] Revisit time for Ground Point 15','FontSize',12,'FontWeight','bold');
 
- % delta_t = delta_t(delta_t ~= 0);
- % fprintf('-----------<GS15 result>------------ \n')
- % fprintf('tau = %d \n',tau);
- % fprintf('k value = %4.4f \n', k_vector(15));
- % fprintf('GS15 total contact = %d \n' , length(delta_t)-1);
- % fprintf('GS15 cost function (sec^2) = %d \n', sum(delta_t.^2));
- % fprintf('GS15 max_revisit (min) = %4.4f \n', max(delta_t)/60);
- % fprintf('GS15 mean_revisit (min) = %4.4f \n', mean(delta_t)/60);
- % fprintf('-----------<end>-------------- \n')
+ delta_t = delta_t(delta_t ~= 0);
+ fprintf('-----------<GS15 result>------------ \n')
+ fprintf('tau = %d \n',tau);
+ fprintf('k value = %4.4f \n', k_vector(15));
+ fprintf('GS15 total contact = %d \n' , length(delta_t)-1);
+ fprintf('GS15 cost function (sec^2) = %d \n', sum(delta_t.^2));
+ fprintf('GS15 max_revisit (min) = %4.4f \n', max(delta_t)/60);
+ fprintf('GS15 mean_revisit (min) = %4.4f \n', mean(delta_t)/60);
+ fprintf('-----------<end>-------------- \n')
 
 %% 8.4 Unconstrained
 

@@ -462,7 +462,7 @@ function plotImagingDownlinkResults( ...
         'Name', 'Imaging-to-Downlink Latency Analysis', ...
         'Position', [100 100 1250 820]);
 
-    tiledlayout(2,2, ...
+    tiledlayout(1,2, ...
         'TileSpacing', 'compact', ...
         'Padding', 'compact');
 
@@ -475,49 +475,49 @@ function plotImagingDownlinkResults( ...
 
     xlabel('Imaging-to-Downlink Latency [min]');
     ylabel('Probability');
-    title('Overall Latency Distribution');
+    title('Overall Latency Distribution','FontSize',12,'FontWeight','bold');
 
     grid on;
     box on;
 
-    %% 2. 경험적 누적분포함수
-    nexttile;
+    % %% 2. 경험적 누적분포함수
+    % nexttile;
+    % 
+    % sortedLatency = sort(latencyMinutes);
+    % 
+    % cumulativeProbability = ...
+    %     (1:length(sortedLatency))' / length(sortedLatency);
+    % 
+    % stairs( ...
+    %     sortedLatency, ...
+    %     cumulativeProbability, ...
+    %     'LineWidth', 1.5);
+    % 
+    % xlabel('Imaging-to-Downlink Latency [min]');
+    % ylabel('Cumulative Probability');
+    % title('Empirical Cumulative Distributed Function (CDF) of Latency');
+    % 
+    % grid on;
+    % box on;
+    % ylim([0 1]);
 
-    sortedLatency = sort(latencyMinutes);
-
-    cumulativeProbability = ...
-        (1:length(sortedLatency))' / length(sortedLatency);
-
-    stairs( ...
-        sortedLatency, ...
-        cumulativeProbability, ...
-        'LineWidth', 1.5);
-
-    xlabel('Imaging-to-Downlink Latency [min]');
-    ylabel('Cumulative Probability');
-    title('Empirical CDF of Latency');
-
-    grid on;
-    box on;
-    ylim([0 1]);
-
-    %% 3. 촬영 지점별 다운링크 가능 비율
-    nexttile;
-
-    bar( ...
-        ground_point_summary.GroundPointNumber, ...
-        ground_point_summary.AvailabilityPercent);
-
-    xlabel('Observation Ground Point Number');
-    ylabel('Downlink Availability [%]');
-    title('Downlink Availability by Observation Point');
-
-    grid on;
-    box on;
-
-    ylim([0 100]);
-    xlim([0.5 54.5]);
-    xticks(1:3:54);
+    % %% 3. 촬영 지점별 다운링크 가능 비율
+    % nexttile;
+    % 
+    % bar( ...
+    %     ground_point_summary.GroundPointNumber, ...
+    %     ground_point_summary.AvailabilityPercent);
+    % 
+    % xlabel('Observation Ground Point Number');
+    % ylabel('Downlink Availability [%]');
+    % title('Downlink Availability by Observation Point');
+    % 
+    % grid on;
+    % box on;
+    % 
+    % ylim([0 100]);
+    % xlim([0.5 54.5]);
+    % xticks(1:3:54);
 
     %% 4. 촬영 지점별 최소-평균-최대 지연시간
     nexttile;
@@ -578,7 +578,7 @@ function plotImagingDownlinkResults( ...
     ylabel('Imaging-to-Downlink Latency [min]');
 
     title( ...
-        'Minimum, Mean, and Maximum Latency by Observation Point');
+        'Minimum, Mean, and Maximum Latency by Observation Point','FontSize',12,'FontWeight','bold');
 
     grid on;
     box on;
@@ -596,7 +596,7 @@ function plotImagingDownlinkResults( ...
     %% 전체 제목
     sgtitle( ...
         'Earth Observation Imaging and Downlink Sequence Analysis', ...
-        'FontWeight', 'bold');
+        'FontWeight', 'bold','fontsize',20);
 
 end
 
