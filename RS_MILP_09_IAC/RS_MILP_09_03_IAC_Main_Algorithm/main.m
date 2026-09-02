@@ -33,14 +33,14 @@ t_vector =  (0:tf_FRT/number_of_timesteps:tf_FRT)';
 [min_GDOP, best_combination_index, best_NRHO_index, best_L4_index, best_L5_index] = ... 
     get_best_GDOP_info(rv_FRT_one, GDOP_history, NRHO_index_history, L4_index_history, L5_index_history, t_vector, number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs);
 
-%% 03. FRT Corridor Satellite Generation
+%% 03. FRT Corridor Satellite Generation / Opimal result
 
 [rv_FRT_dynamic, FRT_ID_history, FRT_age_history, FRT_generation_history] = ... 
     dynamic_FRT_SATs_generation(number_of_FRT_SATs, tf_FRT, t_vector, rv_FRT);
 
 % 03.01 ID-AWARE OPTIMAL GDOP LOOKUP FOR ALL ACTIVE FRT SATELLITES
 
-TOP_K = 50;
+TOP_K = 30;
 
 [FRT_GDOP_lookup_table, ...
  best_GDOP_history, best_combination_index_history, best_NRHO_ID_history, best_L4_ID_history, best_L5_ID_history, ...
@@ -51,16 +51,6 @@ TOP_K = 50;
 % 03.02 Optimal GDOP Figure Generation
 
 [t_vector] = optimal_GDOP_Figure_Generation(FRT_GDOP_lookup_table, t_vector);
-
-%% 04. TOP-1 Servicing load analysis
-
-[NRHO_load_history, L4_load_history, L5_load_history] = ...
-    top_1_servicing_load_history(t_vector, number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs,...
-                                 best_NRHO_ID_history, best_L4_ID_history, best_L5_ID_history);
-
-[max_NRHO_load, max_L4_load, max_L5_load] = ...
-    generate_top_1_load_graph(number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs, ...
-                              NRHO_load_history, L4_load_history, L5_load_history, t_vector);
 
 
 %% 05. Centralized / Sequential Solver for selected time index
@@ -110,7 +100,7 @@ decision_order = 1:number_of_FRT_SATs;
 
 [unique_FRT_IDs_1] = generate_centralized_distributed_result_graph(central_assignment_table,  distributed_assignment_table, t_vector);
 
-[unique_FRT_IDs_2] = generate_centralized_distributed_result_graph_combined(central_assignment_table,  distributed_assignment_table, t_vector);
+[unique_FRT_IDs_2] = generate_optimal_centralized_distributed_result_graph_combined(FRT_GDOP_lookup_table, central_assignment_table,  distributed_assignment_table, t_vector);
 
 %% 06.02 Plot all graph
 
@@ -120,3 +110,75 @@ decision_order = 1:number_of_FRT_SATs;
                              distributed_success_history, distributed_objective_history , distributed_runtime_history, distributed_rank_history, ...
                              distributed_GDOP_history, distributed_NRHO_history, distributed_L4_history, distributed_L5_history, ...
                              topK_GDOP_history);
+
+%% 06. 03 Optimal/Centralized/Distributed Burden History
+
+[NRHO_load_history, L4_load_history, L5_load_history] = ...
+    top_1_servicing_load_history(t_vector, number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs,...
+                                 best_NRHO_ID_history, best_L4_ID_history, best_L5_ID_history);
+
+[max_NRHO_load, max_L4_load, max_L5_load] = ...
+    generate_top_1_load_graph(number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs, ...
+                              NRHO_load_history, L4_load_history, L5_load_history, t_vector);
+
+
+[NRHO_load_history, L4_load_history, L5_load_history] = ...
+    centralized_servicing_load_history(t_vector, number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs,...
+                                 central_NRHO_history, central_L4_history, central_L5_history);
+
+[max_NRHO_load, max_L4_load, max_L5_load] = ...
+    generate_centralized_load_graph(number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs, ...
+                              NRHO_load_history, L4_load_history, L5_load_history, t_vector);
+
+[NRHO_load_history, L4_load_history, L5_load_history] = ...
+    centralized_servicing_load_history(t_vector, number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs,...
+                                 distributed_NRHO_history, distributed_L4_history, distributed_L5_history);
+
+[max_NRHO_load, max_L4_load, max_L5_load] = ...
+    generate_distributed_load_graph(number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs, ...
+                              NRHO_load_history, L4_load_history, L5_load_history, t_vector);
+
+%% Save all open figures into one PDF
+% savepath = '~/Desktop/Figures';
+% 
+% if ~exist(savepath, 'dir')
+%     mkdir(savepath);
+% end
+% 
+% % Get all figures
+% figs = findall(0, 'Type', 'figure');
+% 
+% % Figure 번호 순서대로 정렬
+% [~, idx] = sort([figs.Number]);
+% figs = figs(idx);
+% 
+% % Combined PDF
+% combinedPDF = fullfile(savepath, 'All_Figures.pdf');
+% 
+% if isfile(combinedPDF)
+%     delete(combinedPDF);
+% end
+% 
+% % Save figures
+% for k = 1:length(figs)
+% 
+%     figNum = figs(k).Number;
+% 
+%     % 개별 PDF
+%     fileName = fullfile( ...
+%         savepath, ...
+%         sprintf('Figure%d.pdf', figNum));
+% 
+%     exportgraphics( ...
+%         figs(k), ...
+%         fileName, ...
+%         'ContentType', 'vector');
+% 
+%     % 하나의 PDF로 통합
+%     exportgraphics( ...
+%         figs(k), ...
+%         combinedPDF, ...
+%         'ContentType', 'vector', ...
+%         'Append', k > 1);
+% 
+% end

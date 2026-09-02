@@ -1,4 +1,4 @@
-function [unique_FRT_IDs] = generate_centralized_distributed_result_graph(central_assignment_table,  distributed_assignment_table, t_vector)
+function [unique_FRT_IDs] = generate_optimal_centralized_distributed_result_graph_combined(FRT_GDOP_lookup_table,central_assignment_table,  distributed_assignment_table, t_vector)
 
 
 %% ========================================================================
@@ -13,6 +13,48 @@ figure( ...
     'Name','Centralized, Distributed GDOP History - Individual FRT Satellites');
 
 hold on;
+
+
+
+%% ========================================================================
+% Figure 4
+% GDOP History for Each Physical FRT Satellite
+% ========================================================================
+
+unique_FRT_IDs = ...
+    unique(FRT_GDOP_lookup_table.FRT_ID);
+
+
+
+for ii = 1:length(unique_FRT_IDs)
+
+    current_ID = ...
+        unique_FRT_IDs(ii);
+
+    idx = ...
+        FRT_GDOP_lookup_table.FRT_ID == current_ID;
+
+    current_time = ...
+        FRT_GDOP_lookup_table.Time(idx);
+
+    current_GDOP = ...
+        FRT_GDOP_lookup_table.BestGDOP(idx);
+
+    [current_time,sort_index] = ...
+        sort(current_time);
+
+    current_GDOP = ...
+        current_GDOP(sort_index);
+
+
+    plot( ...
+        current_time, ...
+        current_GDOP, ...
+        'LineWidth',1.5, ...
+        'Color','g')
+end
+
+
 
 
 for ii = 1:length(unique_FRT_IDs)
@@ -65,7 +107,7 @@ xlabel('Time [TU]');
 ylabel('Assigned GDOP');
 
 title( ...
-    ' GDOP History of Individual FRT Satellites, Blue: Centralized, Red: Distributed');
+    ' GDOP History of Individual FRT Satellites, Green: Uncontrained, Blue: Centralized, Red: Distributed');
 
 xlim([t_vector(1) t_vector(end)]);
 
@@ -132,5 +174,6 @@ end
 
 
 hold off;
+
 
 end

@@ -64,7 +64,7 @@ rv0_L5_vertical = [6.3891964038363835E-1
 [t_L5, rv_L5] = ode45(@CRTBP, t_L4_vector,rv0_L5_vertical, odeopt);
 
 
-rv0_FRT_SATs = rv_FRT(1:number_of_timesteps/number_of_FRT_SATs:(number_of_timesteps -number_of_timesteps/number_of_FRT_SATs+1) ,1:6);
+rv0_FRT_SATs = rv_FRT(1:number_of_timesteps/number_of_FRT_SATs:(number_of_timesteps - number_of_timesteps/number_of_FRT_SATs+1) ,1:6);
 rv0_NRHO_south_SATs  = rv_NRHO_south(1:number_of_timesteps/number_of_NRHO_SATs:(number_of_timesteps -number_of_timesteps/number_of_NRHO_SATs+1) ,1:6);
 rv0_L4_vertical_SATs = rv_L4(1:number_of_timesteps/number_of_L4_SATs:(number_of_timesteps -number_of_timesteps/number_of_L4_SATs+1) ,1:6);
 rv0_L5_vertical_SATs = rv_L5(1:number_of_timesteps/number_of_L5_SATs:(number_of_timesteps -number_of_timesteps/number_of_L5_SATs+1) ,1:6);

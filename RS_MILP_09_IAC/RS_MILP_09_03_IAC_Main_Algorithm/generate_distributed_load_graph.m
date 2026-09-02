@@ -1,5 +1,5 @@
 function [max_NRHO_load, max_L4_load, max_L5_load] = ...
-    generate_top_1_load_graph(number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs, ...
+    generate_distributed_load_graph(number_of_NRHO_SATs, number_of_L4_SATs, number_of_L5_SATs, ...
                               NRHO_load_history, L4_load_history, L5_load_history, t_vector)
 
 
@@ -33,7 +33,7 @@ N_L5   = number_of_L5_SATs;
 
 
 fprintf('\n========================================\n');
-fprintf('Maximum Top-1 Servicing Load\n');
+fprintf('Maximum distributed Servicing Load\n');
 fprintf('========================================\n');
 
 fprintf( ...
@@ -55,16 +55,15 @@ fprintf( ...
     max_L5_time);
 
 %% ========================================================================
-% Top-1 Load Heatmap
+% distributed Load Heatmap
 % ========================================================================
 
 figure( ...
-    'Name','Top-1 Servicing Satellite Load');
+    'Name','distributed Servicing Satellite Load');
 
 tiledlayout(3,1, ...
     'TileSpacing','compact', ...
     'Padding','compact');
-
 cmap = [...
     0.10 0.10 0.10;   % 0 : 거의 검정
     0.10 0.45 0.95;   % 1 : 선명한 파랑
@@ -74,6 +73,7 @@ cmap = [...
     0.00 0.55 0.20;   % 5 : 진한 초록
     0.85 0.20 0.65;   % 6 : 자홍/마젠타
     0.85 0.00 0.00];  % 7 : 빨강
+
 %% NRHO
 
 nexttile;
@@ -82,21 +82,19 @@ imagesc( ...
     t_vector, ...
     1:N_NRHO, ...
     NRHO_load_history');
-colormap(cmap);
-clim([-0.5 7.5]);   % 0~7 정수값을 정확히 색 하나씩 대응
-cb = colorbar;
-cb.Ticks = 0:7;
-cb.Label.String = 'Number of FRT Requests';
+
 axis xy;
 
 ylabel('NRHO Satellite ID');
 
 title( ...
-    'NRHO Top-1 Request Load');
+    'NRHO distributed Request Load');
 
+colormap(cmap);
+clim([-0.5 7.5]);   % 0~7 정수값을 정확히 색 하나씩 대응
 cb = colorbar;
+cb.Ticks = 0:7;
 cb.Label.String = 'Number of FRT Requests';
-
 
 %% L4
 
@@ -106,21 +104,19 @@ imagesc( ...
     t_vector, ...
     1:N_L4, ...
     L4_load_history');
-colormap(cmap);
-clim([-0.5 7.5]);   % 0~7 정수값을 정확히 색 하나씩 대응
-cb = colorbar;
-cb.Ticks = 0:7;
-cb.Label.String = 'Number of FRT Requests';
+
 axis xy;
 
 ylabel('L4 Satellite ID');
 
 title( ...
-    'L4 Top-1 Request Load');
+    'L4 distributed Request Load');
 
+colormap(cmap);
+clim([-0.5 7.5]);   % 0~7 정수값을 정확히 색 하나씩 대응
 cb = colorbar;
+cb.Ticks = 0:7;
 cb.Label.String = 'Number of FRT Requests';
-
 
 %% L5
 
@@ -130,20 +126,18 @@ imagesc( ...
     t_vector, ...
     1:N_L5, ...
     L5_load_history');
-colormap(cmap);
-clim([-0.5 7.5]);   % 0~7 정수값을 정확히 색 하나씩 대응
-cb = colorbar;
-cb.Ticks = 0:7;
-cb.Label.String = 'Number of FRT Requests';
+
 axis xy;
 
 xlabel('Time [TU]');
 ylabel('L5 Satellite ID');
 
 title( ...
-    'L5 Top-1 Request Load');
+    'L5 distributed Request Load');
 
+colormap(cmap);
+clim([-0.5 7.5]);   % 0~7 정수값을 정확히 색 하나씩 대응
 cb = colorbar;
+cb.Ticks = 0:7;
 cb.Label.String = 'Number of FRT Requests';
-
 end
