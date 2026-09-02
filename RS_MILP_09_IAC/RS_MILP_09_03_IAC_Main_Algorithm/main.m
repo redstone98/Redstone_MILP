@@ -40,7 +40,7 @@ t_vector =  (0:tf_FRT/number_of_timesteps:tf_FRT)';
 
 % 03.01 ID-AWARE OPTIMAL GDOP LOOKUP FOR ALL ACTIVE FRT SATELLITES
 
-TOP_K = 60;
+TOP_K = 50;
 
 [FRT_GDOP_lookup_table, ...
  best_GDOP_history, best_combination_index_history, best_NRHO_ID_history, best_L4_ID_history, best_L5_ID_history, ...
